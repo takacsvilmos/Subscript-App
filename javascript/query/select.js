@@ -12,7 +12,9 @@ async function select() {
     } catch (err) {
         // Print errors
         console.log(err);
-    }
+    } finally {
+		db.pool.end();
+	}
 }
 
 export default select;
