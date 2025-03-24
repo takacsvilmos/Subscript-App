@@ -1,11 +1,14 @@
-const mariadb = require('mariadb');
+import mariadb from 'mariadb';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Expose the Pool object within this module
-module.exports = Object.freeze({
-  pool: mariadb.createPool({
-    host: '<insert_host_address_here>',
-    port: '<insert_port_number_here>',
-    user: '<insert_user_here>',
-    password: '<insert_password_here>'
-  })
-});
+export const db = {
+    pool: mariadb.createPool({
+        host: process.env.HOST,
+        port: process.env.PORT,
+        user: process.env.DB_USER,
+        password: process.env.PASSWORD,
+    })
+};
