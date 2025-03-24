@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Quick Start: Node.js and MariaDB
 
 This repository will walk you through the process of quickly getting started with [Node.js](https://nodejs.org) and [MariaDB](https://github.com/mariadb-developers/mariadb-getting-started) using the [MariaDB Node.js connector](https://github.com/mariadb-corporation/mariadb-connector-nodejs).
@@ -89,3 +90,7 @@ Or reach out to us directly via:
 
 ## License <a name="license"></a>
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=plastic)](https://opensource.org/licenses/MIT)
+=======
+# Subscript-App
+Simple app that saves subscriptions to a database.
+>>>>>>> 5e7ec3074dfc23cec47310028411f021fe6430e7
