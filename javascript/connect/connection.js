@@ -1,14 +1,17 @@
-const mariadb = require('mariadb');
+import mariadb from 'mariadb';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function asyncFunction() {
     let conn;
     try {
         // Create a new connection
         conn = await mariadb.createConnection({
-            host: '127.0.0.1',
-            port: '3306',
-            user: 'user',
-            password: 'Password123!',
+            host: process.env.HOST,
+            port: process.env.PORT,
+            user: process.env.DB_USER,
+            password: process.env.PASSWORD,
         });
 
         // Print connection thread

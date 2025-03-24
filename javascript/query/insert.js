@@ -1,6 +1,6 @@
-const db = require("./db");
+import {db} from './db.js';
 
-async function asyncFunction() {
+async function insert() {
     try {
         // Insert values
         const first_name = "Johnny";
@@ -23,4 +23,4 @@ async function asyncFunction() {
 	}
 }
 
-asyncFunction();
+export default insert;
