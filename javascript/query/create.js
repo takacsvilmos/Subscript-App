@@ -7,17 +7,10 @@ async function asyncFunction() {
         conn = await db.pool.getConnection();
 
         // Execute query to create a new database
-        await conn.query("CREATE DATABASE IF NOT EXISTS demo");
-        console.log("Demo database created.");
+        await conn.query("CREATE DATABASE IF NOT EXISTS kurzus_nevezes CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci");
+        console.log("kurzus_nevezes database created.");
 
         // Execute query to create a new table
-        await conn.query("CREATE TABLE IF NOT EXISTS demo.contacts ( \
-                        id INT(11) unsigned NOT NULL AUTO_INCREMENT, \
-                        first_name VARCHAR(50) NOT NULL, \
-                        last_name VARCHAR(50) NOT NULL, \
-                        email VARCHAR(75), \
-                        PRIMARY KEY (id))");
-        console.log("Contacts table created.");
     } catch (err) {
         // Print error
         console.log(err);
