@@ -5,6 +5,7 @@ async function insertApplication(applicationData) {
 
     const result = await db.pool.query(insertQuery, [applicationData.teacherId, applicationData.schoolCode, applicationData.paymentMethod, applicationData.invoiceNeeded, applicationData.comments, applicationData.price, applicationData.privacyPolicy]);
     console.log(`Application ${applicationData.teacherId} with schoolcode: ${applicationData.schoolCode} inserted to database: `, result);
+    return result.insertId;
 }
 
 export default insertApplication;

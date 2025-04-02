@@ -3,6 +3,7 @@ import cors from 'cors';
 import getSchoolFromDB from "./javascript/Services/getSchoolFromDB.js";
 import insertTeacher from "./javascript/Services/insertTeacher.js";
 import insertApplication from "./javascript/Services/insertApplication.js";
+import insertStudent from "./javascript/Services/insertStudent.js";
 
 const app = express();
 const port = 3000;
@@ -30,7 +31,10 @@ app.post('/subscription', async(req, res) => {
 
         application.teacherId = await insertTeacher(teacher);
         console.log(req.body);
-        await insertApplication(application);
+        const applicationId = await insertApplication(application);
+        for(const student of studentsArray){
+            await insertStudent(applicationId, student);
+        }
         res.json({message: "New subscription created."});
     }catch (e){
         console.log(e);
