@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import getSchoolFromDB from "./javascript/Services/getSchoolFromDB.js";
 import insertTeacher from "./javascript/Services/insertTeacher.js";
+import insertApplication from "./javascript/Services/insertApplication.js";
 
 const app = express();
 const port = 3000;
@@ -20,18 +21,21 @@ app.get('/schools/:id', async (req, res) => {
 });
 
 app.post('/subscription', async(req, res) => {
-    let {teacher, schoolCode, studentsArray} = req.body;
-    if(teacher && schoolCode && studentsArray){
-        if (teacher && typeof teacher.previousApplication === 'string') {
+    let {teacher, application, studentsArray} = req.body;
+
+    try {
+        if (teacher && typeof teacher.previousApplication === 'string' && application) {
             teacher.previousApplication = teacher.previousApplication === 'yes' ? 1 : 0;
         }
-        await insertTeacher(teacher);
-        res.send("new subscription");
-    }else{
-        console.log("no request body");
-        res.send("no request body");
-    }
 
+        application.teacherId = await insertTeacher(teacher);
+        console.log(req.body);
+        await insertApplication(application);
+        res.json({message: "New subscription created."});
+    }catch (e){
+        console.log(e);
+        res.send("server error");
+    }
 });
 
 app.listen(port, () => {
