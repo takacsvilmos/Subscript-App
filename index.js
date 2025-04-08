@@ -5,7 +5,7 @@ import insertTeacher from "./javascript/Services/insertTeacher.js";
 import insertApplication from "./javascript/Services/insertApplication.js";
 import insertStudent from "./javascript/Services/insertStudent.js";
 import {fileURLToPath} from 'url';
-import {dirname} from 'path';
+import {dirname, join} from 'path';
 import insertBillingInfo from "./javascript/Services/insertBillingInfo.js";
 
 const app = express();
@@ -15,9 +15,10 @@ const __dirname = dirname(__filename);
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(join(__dirname, 'public')));
 
 app.get('/', async (req, res) => {
-    res.sendFile(__dirname + '/test.html');
+    res.sendFile(join(__dirname, 'public', 'test.html'));
 });
 
 app.get('/schools/:id', async (req, res) => {
