@@ -336,11 +336,13 @@
             schoolCode: document.getElementById("schoolCode").value,
             paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value === 'transfer' ? 1 : 2,
             invoiceNeeded: document.querySelector('input[name="invoiceNeeded"]:checked').value === 'yes' ? 1 : 0,
-            taxNumber: document.getElementById("taxNumber").value,
-            invoiceName: document.getElementById("invoiceName").value,
-            zipCode: document.getElementById("zipCode").value,
-            city: document.getElementById("city").value,
-            address: document.getElementById("address").value,
+            billingInfo: {
+                taxNumber: document.getElementById("taxNumber").value,
+                invoiceName: document.getElementById("invoiceName").value,
+                zipCode: document.getElementById("zipCode").value,
+                city: document.getElementById("city").value,
+                address: document.getElementById("address").value,
+            },
             comments: document.getElementById("comments").value,
             price: parseInt(document.getElementById("totalAmount").innerText, 10),
             privacyPolicy: document.querySelector('input[name="privacyPolicy"]').checked ? 1 : 0
@@ -367,7 +369,6 @@
         }
         await fetchSubscription(subscriptionData);
         console.log("dt object: ", subscriptionData);
-        console.log("Jelentkezem button clicked");
     });
 
     async function fetchSubscription(data) {

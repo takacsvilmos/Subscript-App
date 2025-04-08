@@ -7,7 +7,7 @@ async function insertTeacher(teacher) {
         const result = await db.pool.query(insertQuery, [teacher.lastName, teacher.firstName, teacher.schoolMail, teacher.privateMail, teacher.mobile, teacher.previousApplication]);
 
         console.log(`${teacher.firstName} ${teacher.lastName} inserted to database: `, result);
-        return parseInt(result.insertId);
+        return result.insertId;
     } catch (err) {
         console.log(err);
     }

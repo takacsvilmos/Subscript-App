@@ -1,5 +1,4 @@
 import {db} from "../query/db.js"
-import insert from "../query/insert.js";
 
 async function insertStudent(applicationId, studentData) {
 
