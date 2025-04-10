@@ -7,6 +7,7 @@ import insertStudent from "./javascript/Services/insertStudent.js";
 import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';
 import insertBillingInfo from "./javascript/Services/insertBillingInfo.js";
+import getCoursesFromDB from "./javascript/Services/getCoursesFromDB.js";
 
 const app = express();
 const port = 3000;
@@ -27,6 +28,16 @@ app.get('/schools/:id', async (req, res) => {
     try {
         res.send(await getSchoolFromDB(schoolCode));
     } catch (e) {
+        res.send(e);
+    }
+});
+
+app.get('/courses', async (req, res)=>{
+    try{
+        const courses = await getCoursesFromDB();
+        console.log(courses);
+        res.send(courses);
+    }catch(e){
         res.send(e);
     }
 });
