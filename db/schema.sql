@@ -1,0 +1,175 @@
+-- MariaDB adatbázis létrehozása a kurzus nevezési rendszerhez
+
+CREATE DATABASE IF NOT EXISTS kurzus_nevezes CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci;
+USE kurzus_nevezes;
+
+-- TANAR tábla
+CREATE TABLE TANAR (
+    tanar_id INT AUTO_INCREMENT PRIMARY KEY,
+    vezeteknev VARCHAR(50) NOT NULL,
+    keresztnev VARCHAR(50) NOT NULL,
+    iskolai_email VARCHAR(100) NOT NULL,
+    privat_email VARCHAR(100) NOT NULL UNIQUE,
+    mobil_telefonszam VARCHAR(20) NOT NULL,
+    korabban_nevezett BOOLEAN DEFAULT FALSE,
+    hirlevel BOOLEAN DEFAULT TRUE,
+    letrehozva TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ISKOLA tábla előre feltöltött adatokkal
+CREATE TABLE ISKOLA (
+    OMR9 VARCHAR(9) PRIMARY KEY,
+    intezmeny_nev VARCHAR(100) NOT NULL,
+    irsz VARCHAR(4) NOT NULL,
+    cim VARCHAR(200) NOT NULL,
+    telefonszam VARCHAR(20),
+    email VARCHAR(100)
+);
+
+-- FIZETESI_MOD tábla
+CREATE TABLE FIZETESI_MOD (
+    fizetesi_mod_id INT AUTO_INCREMENT PRIMARY KEY,
+    nev VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- KURZUS tábla
+CREATE TABLE KURZUS (
+    kurzus_id INT AUTO_INCREMENT PRIMARY KEY,
+    kurzus_nev VARCHAR(100) NOT NULL,
+    kurzus_dij DECIMAL(10, 2) NOT NULL,
+    aktiv BOOLEAN DEFAULT TRUE
+);
+
+-- NEVEZES tábla
+CREATE TABLE NEVEZES (
+    nevezes_id INT AUTO_INCREMENT PRIMARY KEY,
+    tanar_id INT NOT NULL,
+    OMR9 VARCHAR(9) NOT NULL,
+    fizetesi_mod_id INT NOT NULL,
+    szamlat_ker BOOLEAN DEFAULT FALSE,
+    datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    megjegyzes TEXT,
+    osszeg DECIMAL(10, 2) NOT NULL,
+    adatvedelmi_elfogadva BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (tanar_id) REFERENCES TANAR(tanar_id),
+    FOREIGN KEY (OMR9) REFERENCES ISKOLA(OMR9),
+    FOREIGN KEY (fizetesi_mod_id) REFERENCES FIZETESI_MOD(fizetesi_mod_id)
+);
+
+-- SZAMLA tábla
+CREATE TABLE SZAMLA (
+    szamla_id INT AUTO_INCREMENT PRIMARY KEY,
+    nevezes_id INT NOT NULL,
+    adoszam VARCHAR(20),
+    szamlanev VARCHAR(100) NOT NULL,
+    iranyitoszam VARCHAR(10) NOT NULL,
+    telepules VARCHAR(100) NOT NULL,
+    utca_hsz VARCHAR(200) NOT NULL,
+    FOREIGN KEY (nevezes_id) REFERENCES NEVEZES(nevezes_id)
+);
+
+-- HALLGATO tábla
+CREATE TABLE HALLGATO (
+    hallgato_id INT AUTO_INCREMENT PRIMARY KEY,
+    nevezes_id INT NOT NULL,
+    kurzus_id INT NOT NULL,
+    vezeteknev VARCHAR(50) NOT NULL,
+    keresztnev VARCHAR(50) NOT NULL,
+    evfolyam VARCHAR(10) NOT NULL,
+    FOREIGN KEY (nevezes_id) REFERENCES NEVEZES(nevezes_id),
+    FOREIGN KEY (kurzus_id) REFERENCES KURZUS(kurzus_id)
+);
+
+-- Alapadatok feltöltése
+
+-- Fizetési módok
+INSERT INTO FIZETESI_MOD (nev) VALUES ('Átutalás'), ('Bankkártya');
+
+-- Kurzusok
+INSERT INTO KURZUS (kurzus_nev, kurzus_dij) VALUES
+('Matematika', 5000.00),
+('Fizika', 5000.00),
+('Kémia', 5000.00),
+('Biológia', 5000.00),
+('Informatika', 5500.00);
+
+-- Példa iskolák
+INSERT INTO ISKOLA (OMR9, intezmeny_nev, irsz, cim, telefonszam, email) VALUES
+('BP001', 'Példa Gimnázium', '1111', 'Budapest, Példa utca 1.', '+36-1-234-5678', 'info@pelda.hu'),
+('BP002', 'Minta Általános Iskola', '1112', 'Budapest, Minta út 2.', '+36-1-234-5679', 'info@minta.hu'),
+('DB001', 'Debreceni Példa Iskola', '4032', 'Debrecen, Példa tér 3.', '+36-52-123-456', 'info@debrecen-pelda.hu'),
+('SZ001', 'Szegedi Tanulmányi Központ', '6720', 'Szeged, Tudás utca 4.', '+36-62-987-654', 'info@szeged-tk.hu'),
+('GY001', 'Győri Oktatási Centrum', '9022', 'Győr, Iskola út 5.', '+36-96-111-222', 'info@gyor-oc.hu');
+
+-- Nézetek létrehozása a könnyebb lekérdezéshez
+
+-- Teljes nevezési adatok nézet
+CREATE VIEW teljes_nevezes_nezet AS
+SELECT
+    n.nevezes_id,
+    CONCAT(t.vezeteknev, ' ', t.keresztnev) AS tanar_neve,
+    t.iskolai_email,
+    t.mobil_telefonszam,
+    i.OMR9,
+    i.intezmeny_nev,
+    fm.nev AS fizetesi_mod,
+    n.szamlat_ker,
+    n.osszeg,
+    n.datum,
+    COUNT(h.hallgato_id) AS hallgatok_szama
+FROM NEVEZES n
+JOIN TANAR t ON n.tanar_id = t.tanar_id
+JOIN ISKOLA i ON n.OMR9 = i.OMR9
+JOIN FIZETESI_MOD fm ON n.fizetesi_mod_id = fm.fizetesi_mod_id
+LEFT JOIN HALLGATO h ON n.nevezes_id = h.nevezes_id
+GROUP BY n.nevezes_id;
+
+-- Hallgatói részletek nézet
+CREATE VIEW hallgatoi_nevezesek_nezet AS
+SELECT
+    h.hallgato_id,
+    CONCAT(h.vezeteknev, ' ', h.keresztnev) AS hallgato_neve,
+    h.evfolyam,
+    k.kurzus_nev,
+    k.kurzus_dij,
+    i.intezmeny_nev,
+    CONCAT(t.vezeteknev, ' ', t.keresztnev) AS tanar_neve,
+    n.datum
+FROM HALLGATO h
+JOIN NEVEZES n ON h.nevezes_id = n.nevezes_id
+JOIN KURZUS k ON h.kurzus_id = k.kurzus_id
+JOIN TANAR t ON n.tanar_id = t.tanar_id
+JOIN ISKOLA i ON n.OMR9 = i.OMR9;
+
+-- Trigger a nevezés összegének automatikus frissítéséhez hallgató hozzáadásakor
+DELIMITER //
+CREATE TRIGGER update_nevezes_osszeg_insert AFTER INSERT ON HALLGATO
+FOR EACH ROW
+BEGIN
+    DECLARE kurzus_ar DECIMAL(10, 2);
+
+    -- Lekérdezzük a kurzus árát
+    SELECT kurzus_dij INTO kurzus_ar FROM KURZUS WHERE kurzus_id = NEW.kurzus_id;
+
+    -- Frissítjük a nevezés összegét
+    UPDATE NEVEZES SET osszeg = osszeg + kurzus_ar WHERE nevezes_id = NEW.nevezes_id;
+END//
+
+-- Trigger a nevezés összegének automatikus frissítéséhez hallgató törlésekor
+CREATE TRIGGER update_nevezes_osszeg_delete AFTER DELETE ON HALLGATO
+FOR EACH ROW
+BEGIN
+    DECLARE kurzus_ar DECIMAL(10, 2);
+
+    -- Lekérdezzük a kurzus árát
+    SELECT kurzus_dij INTO kurzus_ar FROM KURZUS WHERE kurzus_id = OLD.kurzus_id;
+
+    -- Frissítjük a nevezés összegét
+    UPDATE NEVEZES SET osszeg = osszeg - kurzus_ar WHERE nevezes_id = OLD.nevezes_id;
+END//
+DELIMITER ;
+
+-- Index létrehozása a gyakori lekérdezésekhez
+CREATE INDEX idx_tanar_email ON TANAR(iskolai_email);
+CREATE INDEX idx_nevezes_datum ON NEVEZES(datum);
+CREATE INDEX idx_hallgato_nevezes ON HALLGATO(nevezes_id);
