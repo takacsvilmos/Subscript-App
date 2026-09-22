@@ -8,10 +8,12 @@ async function getCoursesFromDB() {
             return courses;
         } else {
             console.log("No courses found");
+            return [];
         }
     } catch
         (err) {
         console.log(err);
+        return [];
     }
 }
 

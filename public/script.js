@@ -115,7 +115,7 @@ function createNewStudent(){
 
 async function fetchSubscription(data) {
     try {
-        const response = await fetch(`http://localhost:3000/subscription`, {
+        const response = await fetch(`/subscription`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -131,7 +131,7 @@ async function fetchSubscription(data) {
 async function fetchSchool(code) {
     try {
 
-        const response = await fetch(`http://localhost:3000/schools/${code}`);
+        const response = await fetch(`/schools/${code}`);
 
         if (!response.ok) {
             console.error('Network response was not ok');
@@ -146,7 +146,7 @@ async function fetchSchool(code) {
 
 async function fetchCourses() {
     try {
-        const response = await fetch('http://localhost:3000/courses');
+        const response = await fetch('/courses');
         if (!response.ok) {
             console.error('Network response was not ok');
         }

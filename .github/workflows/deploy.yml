@@ -1,0 +1,22 @@
+name: Deploy to server
+
+on: 
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /home/netverseny/domains/nevezes.netverseny.hu/app
+            git pull origin main
+            npm install --omit=dev
+            pm2 restart nevezes
