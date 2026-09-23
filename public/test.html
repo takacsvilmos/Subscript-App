@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurzus Nevezési Űrlap</title>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -240,10 +241,10 @@
         </div>
 
         <div class="captcha">
-            <p>CAPTCHA helye</p>
-            <img src="/api/placeholder/200/70" alt="CAPTCHA image">
-        </div>
+            <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
 
+        </div>
+        <div id="formMessage" aria-live="polite"></div>
         <button type="submit">Jelentkezem</button>
     </div>
 </form>

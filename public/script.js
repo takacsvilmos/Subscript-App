@@ -22,6 +22,7 @@ document.getElementById('addStudent').addEventListener('click', function () {
 document.getElementById('registrationForm').addEventListener('submit', async function (event) {
     event.preventDefault();
 
+    const turnstileToken = document.querySelector('input[name="cf-turnstile-response"]')?.value;
     const rawText = document.getElementById("totalAmount").innerText;
     const cleanText = rawText.replace(/\D/g, '');
 
@@ -36,7 +37,7 @@ document.getElementById('registrationForm').addEventListener('submit', async fun
     };
     const application = {
         teacherId: 0,
-        schoolCode: document.getElementById("schoolCode").value,
+        schoolCode: document.getElementById("schoolCode").value.trim(),
         paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value === 'transfer' ? 1 : 2,
         invoiceNeeded: document.querySelector('input[name="invoiceNeeded"]:checked').value === 'yes' ? 1 : 0,
         billingInfo: {
@@ -68,13 +69,37 @@ document.getElementById('registrationForm').addEventListener('submit', async fun
     const subscriptionData = {
         teacher: teacher,
         application: application,
-        studentsArray: studentsArray
+        studentsArray: studentsArray,
+        turnstileToken: turnstileToken
     }
-    await fetchSubscription(subscriptionData);
-    console.log("dt object: ", subscriptionData);
+
+    if (!turnstileToken) {
+        document.getElementById('formMessage').textContent = "Kérjük, igazolja, hogy nem robot!";
+        return;
+    }
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    document.getElementById('formMessage').textContent = "Küldés folyamatban...";
+    const result = await fetchSubscription(subscriptionData);
+    if (result === 200) {
+        document.getElementById('formMessage').textContent = "Sikeres jelentkezés!";
+    } else if (result === 400) {
+        document.getElementById('formMessage').textContent = "A captcha ellenőrzés nem sikerült. Kérjük, jelölje be újra, majd küldje el újra.";
+        submitButton.disabled = false;
+        turnstile.reset();
+    } else if (result === 500) {
+        document.getElementById('formMessage').textContent = "Szerver hiba.";
+        submitButton.disabled = false;
+        turnstile.reset();
+    } else {
+        document.getElementById('formMessage').textContent = "Nem sikerült elküldeni a jelentkezést. Kérjük, ellenőrizze az internetkapcsolatot, és próbálja újra.";
+        submitButton.disabled = false;
+        turnstile.reset();
+    }
+
 });
 
-function createNewStudent(){
+function createNewStudent() {
     const container = document.getElementById('studentsContainer');
     const newRow = document.createElement('div');
     newRow.className = 'student-row';
@@ -122,9 +147,16 @@ async function fetchSubscription(data) {
             },
             body: JSON.stringify(data),
         });
-        console.log("post sent");
+        if (response.ok) {
+            console.log("succesful registration");
+            return response.status;
+        } else {
+            console.log("Something went wrong");
+            return response.status;
+        }
     } catch (err) {
         console.error('Fetch error: ', err);
+        return null;
     }
 }
 
@@ -158,18 +190,25 @@ async function fetchCourses() {
     }
 }
 
-// Mock function to simulate school data loading
+
 document.getElementById('schoolCode').addEventListener('blur', async function () {
-    const code = this.value;
+    const code = this.value.trim();
     if (code) {
+        this.setCustomValidity('Az intézménykód ellenőrzése folyamatban van');
         const schoolObject = await fetchSchool(code);
-        // Mock data - in a real app this would be an API call
-        document.getElementById('schoolName').value = schoolObject.intezmeny_nev;
-        document.getElementById('schoolAddress').value = schoolObject.cim;
+        document.getElementById('schoolName').value = schoolObject?.intezmeny_nev ?? '';
+        document.getElementById('schoolAddress').value = schoolObject?.cim ?? '';
+        //this prevents a wrong code submit
+        this.setCustomValidity(schoolObject ? '' : 'Hibás intézménykód');
+        this.reportValidity();
+    } else {
+        document.getElementById('schoolName').value = '';
+        document.getElementById('schoolAddress').value = '';
+        this.setCustomValidity('');
     }
 });
 
-// Mock function to calculate total
+// Sum the price of each student's selected course and shows total
 function updateTotal() {
     const studentCount = document.querySelectorAll('.student-row').length;
     let totalAmount = 0;
