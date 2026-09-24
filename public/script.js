@@ -74,25 +74,25 @@ document.getElementById('registrationForm').addEventListener('submit', async fun
     }
 
     if (!turnstileToken) {
-        document.getElementById('formMessage').textContent = "Kérjük, igazolja, hogy nem robot!";
+        showSnackbar("Kérjük, igazolja, hogy nem robot!");
         return;
     }
     const submitButton = this.querySelector('button[type="submit"]');
     submitButton.disabled = true;
-    document.getElementById('formMessage').textContent = "Küldés folyamatban...";
+    showSnackbar("Küldés folyamatban...");
     const result = await fetchSubscription(subscriptionData);
     if (result === 200) {
-        document.getElementById('formMessage').textContent = "Sikeres jelentkezés!";
+        showSnackbar("Sikeres jelentkezés!", false);
     } else if (result === 400) {
-        document.getElementById('formMessage').textContent = "A captcha ellenőrzés nem sikerült. Kérjük, jelölje be újra, majd küldje el újra.";
+        showSnackbar("A captcha ellenőrzés nem sikerült. Kérjük, jelölje be újra, majd küldje el újra.", true);
         submitButton.disabled = false;
         turnstile.reset();
     } else if (result === 500) {
-        document.getElementById('formMessage').textContent = "Szerver hiba.";
+        showSnackbar("Szerver hiba.", true);
         submitButton.disabled = false;
         turnstile.reset();
     } else {
-        document.getElementById('formMessage').textContent = "Nem sikerült elküldeni a jelentkezést. Kérjük, ellenőrizze az internetkapcsolatot, és próbálja újra.";
+        showSnackbar("Nem sikerült elküldeni a jelentkezést. Kérjük, ellenőrizze az internetkapcsolatot, és próbálja újra.", true);
         submitButton.disabled = false;
         turnstile.reset();
     }
@@ -169,7 +169,7 @@ async function fetchSchool(code) {
             console.error('Network response was not ok');
         }
         const data = await response.json();
-        console.log(data);
+
         return data;
     } catch (err) {
         console.error('Fetch error: ', err);
@@ -183,7 +183,7 @@ async function fetchCourses() {
             console.error('Network response was not ok');
         }
         const data = await response.json();
-        console.log(data);
+
         return data;
     } catch (err) {
         console.error('Fetch error: ', err);
@@ -231,3 +231,16 @@ function updateTotal() {
 
 // Initialize total calculation
 updateTotal();
+
+function showSnackbar(text, error, ms = 5000) {
+    const bar = document.getElementById('snackbar');
+    bar.classList.remove('error', 'success');
+    if (error === false) {
+        bar.classList.add('success');
+    } else if (error === true) {
+        bar.classList.add('error');
+    }
+    bar.textContent = text;
+    bar.classList.add('show');
+    setTimeout(() => bar.classList.remove('show'), ms);
+}
