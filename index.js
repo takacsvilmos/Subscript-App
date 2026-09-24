@@ -4,8 +4,8 @@ import getSchoolFromDB from "./javascript/Services/getSchoolFromDB.js";
 import insertTeacher from "./javascript/Services/insertTeacher.js";
 import insertApplication from "./javascript/Services/insertApplication.js";
 import insertStudent from "./javascript/Services/insertStudent.js";
-import {fileURLToPath} from 'url';
-import {dirname, join} from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import insertBillingInfo from "./javascript/Services/insertBillingInfo.js";
 import getCoursesFromDB from "./javascript/Services/getCoursesFromDB.js";
 
@@ -32,18 +32,37 @@ app.get('/schools/:id', async (req, res) => {
     }
 });
 
-app.get('/courses', async (req, res)=>{
-    try{
+app.get('/courses', async (req, res) => {
+    try {
         const courses = await getCoursesFromDB();
         console.log(courses);
         res.send(courses);
-    }catch(e){
+    } catch (e) {
         res.send(e);
     }
 });
 
 app.post('/subscription', async (req, res) => {
-    let {teacher, application, studentsArray} = req.body;
+    try {
+        const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                secret: process.env.TURNSTILE_SECRET_KEY,
+                response: req.body.turnstileToken,
+                remoteip: req.ip
+            })
+        });
+        const verifyData = await verifyRes.json();
+        if (!verifyData.success) {
+            return res.status(400).json({ message: "Capcha verification failed" });
+        }
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send("server error");
+    }
+
+    const { teacher, application, studentsArray } = req.body;
 
     try {
         if (teacher && typeof teacher.previousApplication === 'string' && application) {
@@ -59,7 +78,7 @@ app.post('/subscription', async (req, res) => {
         if (application.invoiceNeeded === 1) {
             await insertBillingInfo(applicationId, application.billingInfo);
         }
-        res.json({message: "New subscription created."});
+        res.json({ message: "New subscription created." });
     } catch (e) {
         console.log(e);
         res.status(500).send("server error");
